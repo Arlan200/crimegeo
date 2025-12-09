@@ -1,11 +1,181 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <title>Карта преступности Усть-Каменогорска</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="icon" href="data/favicon.ico">
+
+  <!-- Chart.js для диаграммы -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+    }
+
+    /* Кнопка */
+    #openBtn {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      padding: 10px 16px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      z-index: 1000;
+    }
+
+    /* Боковая панель */
+    #panel {
+      width: 380px;
+      height: 100%;
+      background: white;
+      position: fixed;
+      right: -380px;
+      top: 0;
+      padding: 20px;
+      box-shadow: -4px 0 8px rgba(0,0,0,0.2);
+      transition: 0.35s;
+      z-index: 999;
+    }
+
+    #panel.open {
+      right: 0;
+    }
+
+    #closeBtn {
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      background: white;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+  </style>
 </head>
+
 <body>
-    asdf
+  <header>
+    <h1>Преступность в г. Усть-Каменогорск</h1>
+  </header>
+
+  <main id="menu">
+    <h3>Выбор года</h3>
+    <select id="yearSelect">
+      <option value="2020">2020</option>
+      <option value="2024">2024</option>
+    </select>
+
+    <h3>Категория тяжести</h3>
+    <div class="category" data-category="Жесткие преступления">Жесткие преступления</div>
+    <div class="category" data-category="Тяжкие преступления">Тяжкие преступления</div>
+
+    <div id="types"></div>
+  </main>
+
+  <!-- Карта в окошке -->
+  <div id="mapContainer">
+    <div id="map"></div>
+  </div>
+
+  <section id="infoText">
+    <h2>Статистика преступности</h2>
+    <img src="data2/график1.png" alt="Диаграмма преступности" class="info-img">
+    <p>
+      За 10 месяцев 2022 года зарегистрировано уголовных правонарушений – <b>140592</b>,
+      что на 1,8% больше, чем за аналогичный период предыдущего года (138093),
+      из них 86,0% или <b>120985</b> – преступлений, 14,0% или <b>19607</b> – уголовные проступки.
+    </p>
+    <img src="data2/график2.png" alt="Диаграмма преступности" class="info-img">
+    <p>Больше всего уголовных правонарушений зарегистрировано в регионах:</p>
+    <ul>
+      <li>Алматы — 30697</li>
+      <li>Астана — 15703</li>
+      <li>Шымкент — 8603</li>
+      <li>Алматинская область — 11243</li>
+      <li>Карагандинская область — 8823</li>
+      <li>ВКО — 7343</li>
+    </ul>
+    <img src="data2/график3.png" alt="Диаграмма преступности" class="info-img">
+    <p><b>Динамика по категориям тяжести:</b></p>
+    <ul>
+      <li>Особо тяжкие — снижение на 0,2% (1962 → 1965)</li>
+      <li>Тяжкие — рост на 14,8% (33408 → 38361)</li>
+      <li>Средней тяжести — снижение на 2,7% (61668 → 60017)</li>
+      <li>Небольшой тяжести — рост на 1,8% (20288 → 20645)</li>
+    </ul>
+    <br>
+    <p>
+      В ВКО Усть-Каменогорск лидирует по уровню преступности.
+      За 2020 год в областном центре произошло больше преступлений, чем в других городах и районах
+      Восточно-Казахстанской области.
+    </p>
+    <p>
+      На каждые 10 000 человек пришлось <b>282 преступления</b>,
+      что является самым высоким показателем по региону.
+    </p>
+  </section>
+
+  <!-- Кнопка открытия панели с диаграммой -->
+  <button id="openBtn">Статистика преступлений</button>
+
+  <!-- Боковая панель -->
+  <div id="panel">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h2>Сравнение 2020 vs 2024</h2>
+      <button id="closeBtn">Закрыть</button>
+    </div>
+
+    <canvas id="crimeChart" style="margin-top: 20px;"></canvas>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="script.js"></script>
+
+  <script>
+    // Данные диаграммы
+    const categories = [
+      { name: "Убийство", y2020: 8, y2024: 9 },
+      { name: "Изготовление наркотиков", y2020: 16, y2024: 13 }
+    ];
+
+    // Открытие / закрытие панели
+    const panel = document.getElementById("panel");
+    document.getElementById("openBtn").onclick = () => panel.classList.add("open");
+    document.getElementById("closeBtn").onclick = () => panel.classList.remove("open");
+
+    // Построение диаграммы
+    const ctx = document.getElementById("crimeChart");
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: categories.map(c => c.name),
+        datasets: [
+          {
+            label: "2020 год",
+            data: categories.map(c => c.y2020),
+            backgroundColor: 'rgba(255, 99, 132, 0.7)'
+          },
+          {
+            label: "2024 год",
+            data: categories.map(c => c.y2024),
+            backgroundColor: 'rgba(54, 162, 235, 0.7)'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: true, text: 'Сравнение преступлений 2020 vs 2024' }
+        }
+      }
+    });
+  </script>
 </body>
 </html>
