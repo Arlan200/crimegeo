@@ -216,3 +216,92 @@ select {
   max-width: 800px;
   margin: 0 auto;   /* центрирование */
 }
+
+/* --- Общие стили страницы --- */
+body {
+  margin: 0;
+  background: #f4f4f4;
+  font-family: 'Arial', sans-serif;
+}
+
+/* --- Кнопка открытия панели --- */
+#openBtn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 10px 16px;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  z-index: 1000;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+#openBtn:hover {
+  background-color: #f2f2f2;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* --- Боковая панель статистики --- */
+#panel {
+  width: 380px;
+  height: 100%;
+  background: #ffffff;
+  position: fixed;
+  right: -380px;
+  top: 0;
+  padding: 20px;
+  box-shadow: -4px 0 8px rgba(0,0,0,0.2);
+  transition: right 0.35s ease;
+  z-index: 999;
+  overflow-y: auto;
+}
+
+#panel.open {
+  right: 0;
+}
+
+/* Заголовок панели */
+#panel h2 {
+  font-size: 20px;
+  color: #2c3e50;
+}
+
+/* Кнопка закрытия */
+#closeBtn {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  background: #ffffff;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.3s;
+}
+
+#closeBtn:hover {
+  background-color: #f2f2f2;
+}
+
+/* Canvas диаграммы в панели */
+#crimeChart {
+  margin-top: 20px;
+}
+
+.chart-block {
+  max-width: 600px;      /* ширина блока диаграммы */
+  margin: 30px auto;     /* центрирование по горизонтали и отступ сверху/снизу */
+  padding: 10px 15px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+
+.chart-block h3 {
+  text-align: left;      /* заголовок слева сверху */
+  font-size: 20px;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+

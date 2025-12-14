@@ -251,3 +251,5 @@ const chartData = {
 
 // Подписи секторов
 const chartLabels = ["Убийства", "Кражи", "Другое"];
+
+
